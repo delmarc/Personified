@@ -7,12 +7,14 @@ Sure that is ok but I know I am an engineer, not a boring developer... I don't t
 
 
 ###### Personified was started 6/27/14
-###### Current version - 0.0.0 - 6/27/14
+###### Current version - 0.0.6 - 7/15/14
 
 
 TODOS
 -----
 
 1. Everything
+2. Start/Finish the model implementation
+3. Have the correct context in the controllers functions and such...
 
 Delmarc

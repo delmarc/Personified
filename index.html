@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8" />
+        <title>Personified</title>
+        <script src="//localhost:3001/js/Objectified.js"></script>
+        <script src="js/Personified.js"></script>
+    </head>
+    <body>
+
+        <h1>Personified...</h1>
+        <p>an mvc-ish framework that is only OO you will never write html again...</p>
+        <div id="app-placement"></div>
+
+        <script>
+        var sampleApp = Personified.init({
+            something:1,
+            view:{
+                placement:"app-placement",
+                template:true,
+                render:{
+                    tag:"div",
+                    children:[{
+                        tag:"p",
+                        attributes:{
+                            className:"yea",
+                            innerHTML:"OK",
+                            style:{
+                                color:"#ff0000"
+                            }
+                        }
+                    }]
+                }
+            },
+            model:{
+                prop:"some shit"
+            },
+            controller:{
+                events:{
+                    "p":{
+                        on:{
+                            click : "alertMe",
+                            mousemove: "moveMe"
+                        }
+                    }
+                },
+                moveMe:function(ev){
+                    console.log("hey",ev);
+                },
+                alertMe:function(){
+                    console.log("YO",this);
+                }
+            }
+        });
+        console.log(sampleApp);
+        </script>
+
+    </body>
+</html>
