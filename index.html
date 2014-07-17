@@ -31,27 +31,28 @@
                         }
                     }]
                 }
-            },
+            },/*
             model:{
                 prop:"some shit"
-            },
+            },*/
             controller:{
                 events:{
                     "p":{
                         on:{
-                            click : "alertMe",
-                            mousemove: "moveMe"
+                            click : "alertMe"
                         }
                     }
                 },
                 moveMe:function(ev){
                     console.log("hey",ev);
                 },
-                alertMe:function(){
-                    console.log("YO",this);
+                alertMe:function(ev){
+                    console.log("YO",this.get("prop"),ev);
                 }
             }
-        });
+        }).createModel({
+            prop:"some shit"
+        },"init");
         console.log(sampleApp);
         </script>
 

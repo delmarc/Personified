@@ -59,10 +59,47 @@
         return this;
     }
 
-    function createBaseModelObj(){
+    function createBaseModelObj(modelToCreateFrom){
+        function baseModelObject(modelToCreateFrom){
+            this.base = {};
+            this.live = {};
+            this.changed = {};
 
+            for(var prop in modelToCreateFrom){
+                this.base[prop] = modelToCreateFrom[prop];
+                this.live[prop] = modelToCreateFrom[prop];
+                this.changed[prop] = modelToCreateFrom[prop];
+            }
 
-        return this;
+            return this;
+        }
+
+        baseModelObject.prototype.get = function(modelProp){
+            if(!modelProp){
+                return throwOne("Cant get nothing if you dont tell me what to get");
+            }
+
+            if(this.base.hasOwnProperty(modelProp)){
+                return this.base[modelProp];
+            } else {
+                return null;
+            }
+        }
+        baseModelObject.prototype.set = function(modelProp, dataToSet){
+            if(!modelProp){
+                return throwOne("Cant set anything if you dont tell me what to set");
+            }
+            if(!dataToSet){
+                return throwOne("Well you want me to set something right... but with what???");
+            }
+
+            
+
+        }
+        baseModelObject.prototype.revert = function(){
+        }
+ 
+        return new baseModelObject(modelToCreateFrom);
     }
 
 
@@ -72,6 +109,13 @@
     	} else {
     		return throwOne("OH YOU DONT HAVE Objectified!!!");
     	}
+
+        if( !createViewObject ){
+            return throwOne("I have to get both a object to base the view on");
+        }
+        if( !viewState ){
+            return throwOne("I have to get a view state that this will belong to");
+        }
 
         var viewObj = Objectified.render(createViewObject.render),
             dropViewPoint,
@@ -99,6 +143,14 @@
     }
 
     function createController (createControllerObj,controllerState){
+        if( !createControllerObj ){
+            return throwOne("I have to get both a object to base the controller on");
+        }
+        if( !controllerState ){
+            return throwOne("I have to get a controller state that this will belong to");
+        }
+
+        var selfPersonifiedApp = this;
 
         if(this.controllers[controllerState]){
             console.log("I already have this controller");
@@ -113,7 +165,15 @@
                 for(var i=0;i<referenceElementNodeList.length;i++){
                     for(var onEvent in createControllerObj.events[elementEventBinding].on){
                         // just for testing now
-                        referenceElementNodeList[i]["on"+onEvent] = createControllerObj[ createControllerObj.events[elementEventBinding].on[onEvent] ];
+
+                        referenceElementNodeList[i]["on"+onEvent] = function(ev){
+                            if(selfPersonifiedApp.models && selfPersonifiedApp.models[controllerState]){
+                                return createControllerObj[ createControllerObj.events[elementEventBinding].on[onEvent] ].call(selfPersonifiedApp.models[controllerState],ev);
+                            } else {
+                                return createControllerObj[ createControllerObj.events[elementEventBinding].on[onEvent] ].call(this,ev);
+                            }
+                        }
+
                     }
                 }
             }
@@ -122,7 +182,24 @@
     	return this;
     }
 
-    function createModel (createModelObj,modelState){
+    function createModel(createModelObj,modelState){
+        if( !createModelObj ){
+            return throwOne("I have to get both a object to base the model on");
+        }
+        if( !modelState ){
+            return throwOne("I have to get a model state that this will belong to");
+        }
+
+        if(this.models[modelState]){
+            console.log("I already have this model");
+        } else {
+            console.log("create this model");
+            this.models[modelState] = createBaseModelObj(createModelObj);
+        }
+
+
+
+
     	return this;
     }
 
