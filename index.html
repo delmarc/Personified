@@ -29,6 +29,15 @@
                                 color:"#ff0000"
                             }
                         }
+                    },{
+                        tag:"p",
+                        attributes:{
+                            className:"reset",
+                            innerHTML:"reset me",
+                            style:{
+                                color:"#ff0000"
+                            }
+                        }
                     }]
                 }
             },/*
@@ -37,23 +46,33 @@
             },*/
             controller:{
                 events:{
-                    "p":{
+                    "p.yea":{
                         on:{
                             click : "alertMe"
+                        }
+                    },
+                    "p.reset":{
+                        on:{
+                            click : "revertMe"
                         }
                     }
                 },
                 moveMe:function(ev){
                     console.log("hey",ev);
                 },
+                revertMe:function(ev){
+                    console.log(this);
+                    alert("reverting");
+                },
                 alertMe:function(ev){
-                    console.log("YO",this.get("prop"),ev);
+                    console.log("YO this is the model",this,ev);
+                    console.log("YO",this.set("prop","ok something else"),ev);
                 }
             }
         }).createModel({
             prop:"some shit"
         },"init");
-        console.log(sampleApp);
+
         </script>
 
     </body>
