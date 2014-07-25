@@ -33,9 +33,18 @@
                         tag:"p",
                         attributes:{
                             className:"reset",
-                            innerHTML:"reset me",
+                            innerHTML:"alert me",
                             style:{
                                 color:"#ff0000"
+                            }
+                        }
+                    },{
+                        tag:"p",
+                        attributes:{
+                            className:"resetAll",
+                            innerHTML:"reset Everything",
+                            style:{
+                                color:"#ff00ff"
                             }
                         }
                     }]
@@ -55,18 +64,24 @@
                         on:{
                             click : "revertMe"
                         }
+                    },
+                    "p.resetAll":{
+                        on:{
+                            click : "revertAll"
+                        }
                     }
                 },
-                moveMe:function(ev){
-                    console.log("hey",ev);
+                revertAll:function(ev){
+                    console.log("Revert all",this.revert(), this);
+                    alert("reverting all and alerting");
                 },
                 revertMe:function(ev){
-                    console.log(this);
-                    alert("reverting");
+                    console.log("Revert single",this.revert("prop"), this);
+                    alert("reverting single one and alerting");
                 },
                 alertMe:function(ev){
-                    console.log("YO this is the model",this,ev);
-                    console.log("YO",this.set("prop","ok something else"),ev);
+                    /*console.log("YO this is the model",this,ev);*/
+                    console.log("YO",this.set("prop","ok something else"), this);
                 }
             }
         }).createModel({

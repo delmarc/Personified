@@ -42,7 +42,7 @@
 
         if(failSilently){
 
-			console && console.log && console.log(text)
+			console && console.log && console.log(text);
 
         } else {
 
@@ -60,7 +60,7 @@
                 }
                 objEle.actions[whatAction] = aF;
                 objEle.addEventListener(whatAction, objEle.actions[whatAction],  false);
-            }
+            };
         } else {
             howeverYouDoEvents = function (objEle, whatAction, aF) {
                 if (!objEle.actions) {
@@ -68,7 +68,7 @@
                 }
                 objEle.actions[whatAction] = aF;
                 objEle.attachEvent(whatAction, objEle.actions[whatAction]);
-            }
+            };
         }
         howeverYouDoEvents(objEle, whatAction, aF);
     }
@@ -78,12 +78,12 @@
             howeverYouDoEventsJustStop = function (objEle, whatAction) {
                 objEle.removeEventListener(whatAction, objEle.actions[whatAction],  false);
                 delete objEle.actions[whatAction];
-            }
+            };
         } else {
             howeverYouDoEventsJustStop = function (objEle, whatAction) {
                 objEle.detachEvent("on"+whatAction, objEle.actions[whatAction]);
                 delete objEle.actions["on"+whatAction];
-            }
+            };
         }
         howeverYouDoItJustStop(objEle, whatAction);
     }
@@ -122,7 +122,7 @@
             console.log("create this view");
             this.views[viewState] = {
                 template : viewObj.cloneNode(true)
-            }
+            };
         }
 
         if(dropViewPoint = globalObj.document.getElementById(createViewObject.placement)){
@@ -170,7 +170,7 @@
                                     return createControllerObj[ createControllerObj.events[instanceElementEventBinding].on[instanceOnEvent] ].call(this,ev);
                                 }
 
-                            }
+                            };
                         }.call(referenceElementNodeList[i], controllerState, elementEventBinding, onEvent);
 
                     }
@@ -193,7 +193,6 @@
             console.log("I already have this model");
         } else {
             console.log("create this model");
-            var self = this;
             this.models[modelState] = createBaseModelObj(createModelObj, modelState);
             howeverYouDoEvents(personifiedPubSubDOMModule, modelState+"Action", this.models[modelState].handler);
         }
@@ -202,6 +201,9 @@
     }
 
     function createBaseModelObj(modelToCreateFrom, modelName){
+        var _eventCount = 0,
+            selfModelObj;
+
         function baseModelObject(modelToCreateFrom){
             this.base = {};
             this.live = {};
@@ -217,10 +219,25 @@
         }
 
         baseModelObject.prototype.handler = function(ev){
-            //this.live[modelProp] = dataToSet;
+            var handlersDOMInstance = this.getElementById(_eventCount+"-"+ev.timeStamp);
 
-            console.log(arguments);
-            return "YE";
+            switch(handlersDOMInstance.action){
+                case "set":
+                    selfModelObj.changed[handlersDOMInstance.setProp] = handlersDOMInstance.setData;
+                    break;
+                case "revertSingle":
+                    selfModelObj.changed[handlersDOMInstance.setProp] = selfModelObj.base[handlersDOMInstance.setProp];
+                    selfModelObj.live[handlersDOMInstance.setProp] = selfModelObj.base[handlersDOMInstance.setProp];
+                    break;
+                case "revert":
+                    selfModelObj.changed = selfModelObj.base;
+                    selfModelObj.live = selfModelObj.base;
+                    break;
+            }
+
+            handlersDOMInstance.parentNode.removeChild(handlersDOMInstance);
+
+            return this.changed;
         };
 
         baseModelObject.prototype.name = modelName;
@@ -236,6 +253,7 @@
                 return null;
             }
         };
+
         baseModelObject.prototype.set = function(modelProp, dataToSet){
             if(!modelProp){
                 return throwOne("Cant set anything if you dont tell me what to set");
@@ -245,10 +263,24 @@
             }
 
             if(this.base.hasOwnProperty(modelProp)){
-                this.changed[modelProp] = dataToSet;
+                this.live[modelProp] = dataToSet;
                 var setEvent = document.createEvent("MouseEvents");
 
-                setEvent.initMouseEvent(this.name+"Action", true, true, window, 0,0,0,0,0, false,false,false, false,0,null);
+                setEvent.initMouseEvent(this.name+"Action", true, true, window, (++_eventCount),0,0,0,0, false,false,false, false,0,null);
+
+                var setElem = Objectified.render({
+                    "tag":"span",
+                    "attributes":{
+                        "id":_eventCount+"-"+setEvent.timeStamp
+                    }
+                });
+
+                // need a better way to do this
+                setElem.childNodes[0].setProp = modelProp;
+                setElem.childNodes[0].setData = dataToSet;
+                setElem.childNodes[0].action = "set";
+
+                personifiedPubSubDOMModule.appendChild(setElem);
 
                 personifiedPubSubDOMModule.dispatchEvent(setEvent);
 
@@ -258,25 +290,55 @@
             }
 
         };
+
         baseModelObject.prototype.revert = function(modelPropToRevert){
             /* 
                 if something is passed then revert just that...
                 otherwise revert all
             */
             if(modelPropToRevert){
-                this.changed[modelProp] = dataToSet;
+                this.live[modelPropToRevert] = this.base[modelPropToRevert];
+                this.changed[modelPropToRevert] = this.base[modelPropToRevert];
+
                 var setEvent = document.createEvent("MouseEvents");
 
-                setEvent.initMouseEvent(this.name+"Action", true, true, window, 0,0,0,0,0, false,false,false, false,0,null);
+                setEvent.initMouseEvent(this.name+"Action", true, true, window, (++_eventCount),0,0,0,0, false,false,false, false,0,null);
+
+                var setElem = Objectified.render({
+                    "tag":"span",
+                    "attributes":{
+                        "id":_eventCount+"-"+setEvent.timeStamp
+                    }
+                });
+
+                // need a better way to do this... actually for now this ok but the props need better names
+                setElem.childNodes[0].setProp = modelPropToRevert;
+                setElem.childNodes[0].action = "revertSingle";
+
+                personifiedPubSubDOMModule.appendChild(setElem);
 
                 personifiedPubSubDOMModule.dispatchEvent(setEvent);
 
                 return this.changed;
             } else {
-                this.changed[modelProp] = dataToSet;
+                this.live = this.base;
+                this.changed = this.base;
+
                 var setEvent = document.createEvent("MouseEvents");
 
-                setEvent.initMouseEvent(this.name+"Action", true, true, window, 0,0,0,0,0, false,false,false, false,0,null);
+                setEvent.initMouseEvent(this.name+"Action", true, true, window, (++_eventCount),0,0,0,0, false,false,false, false,0,null);
+
+                var setElem = Objectified.render({
+                    "tag":"span",
+                    "attributes":{
+                        "id":_eventCount+"-"+setEvent.timeStamp
+                    }
+                });
+
+                // need a better way to do this
+                setElem.childNodes[0].action = "revert";
+
+                personifiedPubSubDOMModule.appendChild(setElem);
 
                 personifiedPubSubDOMModule.dispatchEvent(setEvent);
 
@@ -284,8 +346,10 @@
             }
 
         };
- 
-        return new baseModelObject(modelToCreateFrom);
+
+        selfModelObj = new baseModelObject(modelToCreateFrom);
+
+        return selfModelObj;
     }
 
 
