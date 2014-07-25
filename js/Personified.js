@@ -237,7 +237,7 @@
 
             handlersDOMInstance.parentNode.removeChild(handlersDOMInstance);
 
-            return this.changed;
+            return selfModelObj.changed;
         };
 
         baseModelObject.prototype.name = modelName;
