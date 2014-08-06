@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8" />
+        <title>-- Personified --</title>
+        <script src="//localhost:3001/js/Objectified.js"></script>
+        <script src="js/Personified.js"></script>
+    </head>
+    <body>
+
+        <script>
+        document.body.appendChild( Objectified.render({
+            "tag":"div",
+            "children":[{
+                    "tag":"h1",
+                    "attributes":{
+                        "innerHTML":"Personified..."
+                    }
+                },{
+                    "tag":"p",
+                    "attributes":{
+                        "innerHTML":"an mvc-ish framework that is only OO you will never write html again..."
+                    }
+                },{
+                    "tag":"div",
+                    "attributes":{
+                        "id":"app-placement"
+                    }
+            }]
+        }) );
+
+        var sampleApp = Personified.init({
+            something:1,
+            view:{
+                placement:"app-placement",
+                template:true,
+                render:{
+                    tag:"div",
+                    children:[{
+                        tag:"p",
+                        attributes:{
+                            className:"yea",
+                            innerHTML:"OK",
+                            style:{
+                                color:"#ff0000"
+                            }
+                        }
+                    },{
+                        tag:"p",
+                        attributes:{
+                            className:"reset",
+                            innerHTML:"alert me",
+                            style:{
+                                color:"#ff0000"
+                            }
+                        }
+                    },{
+                        tag:"p",
+                        attributes:{
+                            className:"resetAll",
+                            innerHTML:"reset Everything",
+                            style:{
+                                color:"#ff00ff"
+                            }
+                        }
+                    },{
+                        tag:"p",
+                        attributes:{
+                            id:"collectionStart",
+                            innerHTML:"create collection",
+                            style:{
+                                color:"#ffff00"
+                            }
+                        }
+                    },{
+                        tag:"p",
+                        attributes:{
+                            id:"collectionCheck",
+                            innerHTML:"check for a collection",
+                            style:{
+                                color:"#00ffff"
+                            }
+                        }
+                    },{
+                        tag:"p",
+                        attributes:{
+                            id:"addSingleToCollection",
+                            innerHTML:"Add another to collection",
+                            style:{
+                                color:"#00ffff"
+                            }
+                        }
+                    }]
+                }
+            },
+            controller:{
+                events:{
+                    "p.yea":{
+                        on:{
+                            click : "alertMe"
+                        }
+                    },
+                    "p.reset":{
+                        on:{
+                            click : "revertMe"
+                        }
+                    },
+                    "p.resetAll":{
+                        on:{
+                            click : "revertAll"
+                        }
+                    },
+                    "p#collectionStart":{
+                        on:{
+                            click : "createCollection"
+                        }
+                    },
+                    "p#collectionCheck":{
+                        on:{
+                            click : "checkCollection"
+                        }
+                    },
+                    "p#addSingleToCollection":{
+                        on:{
+                            click : "addSingleToCollection"
+                        }
+                    }
+                },
+                revertAll:function(ev){
+                    this.model.revert();
+                    //console.log("Revert all",this.model.revert(), this);
+                    alert("reverting all and alerting");
+                },
+                revertMe:function(ev){
+                    this.model.revert("prop");
+                    //console.log("Revert single",this.model.revert("prop"), this);
+                    alert("reverting single one and alerting");
+                },
+                alertMe:function(ev){
+                    this.model.set("prop","ok something else");
+                    alert("setting a single prop");
+                    /*console.log("YO this is the model",this,ev);*/
+                    //console.log("YO", this);
+                    //console.log("YO",this.model.set("prop","ok something else"), this);
+                },
+                createCollection:function(ev){
+                    sampleApp.createCollection([{
+                        name:"daddy",
+                        relation:"parent"
+                    },{
+                        name:"mommy",
+                        relation:"parent"
+                    }],"init");
+                    alert("created the collection");
+                    //console.log("This created the collection",this,ev);
+                },
+                checkCollection:function(ev){
+                    if(this.collection){
+                        alert("a collection exist");
+                    } else {
+                        alert("a collection doesnt exist");
+                    }
+                },
+                addSingleToCollection:function(ev){
+                    if(this.collection){
+                        this.collection.add({
+                            name:"baby",
+                            relation:"child"
+                        });
+                        alert("added to the collection");
+                    } else {
+                        alert("no collection to add to");
+                    }
+                }
+
+            }
+        }).createModel({
+            prop:"some shit"
+        },"init");
+        </script>
+
+    </body>
+</html>

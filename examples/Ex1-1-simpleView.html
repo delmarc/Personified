@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8" />
+        <title>Personified</title>
+        <script src="//localhost:3001/js/Objectified.js"></script>
+        <script src="/js/Personified.js"></script>
+    </head>
+    <body>
+
+        <script>
+        var sampleApp = Personified.init({
+            something:1,
+            view:{
+                render:{
+                    tag:"div",
+                    children:[{
+                        tag:"p",
+                        attributes:{
+                            innerHTML:"OH hello world..."
+                        }
+                    }]
+                }
+            }
+        });
+        </script>
+
+    </body>
+</html>

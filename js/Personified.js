@@ -6,7 +6,7 @@
 * @namespace window.Personified
 */
 
-(function (root, factory){
+;(function (root, factory){
     if(root.navigator){
         if (typeof exports === "object" && exports) {
             // CommonJS
@@ -32,6 +32,8 @@
     	PersonifiedApp = null,
         failSilently = false,
         personifiedPubSubDOMModule = null,
+        _eventCount = 0,
+        _randNumCount = 0,
         noop = function(){};
 
     globalObj.Objectified = Objectified;
@@ -91,18 +93,21 @@
 
 
     function createBaseObj(){
+        this.models = {};
         this.views = {};
         this.controllers = {};
-        this.models = {};
+
+        this.collection = {};
 
         return this;
     }
 
-    function createMVC(){
+    function createMVC(createMVCObj, mvcState){
         // this is what will be the new init
+        console.log(this);
+
         return this;
     }
-
 
     function createView (createViewObject,viewState){
         if( !createViewObject ){
@@ -125,14 +130,23 @@
             };
         }
 
-        if(dropViewPoint = globalObj.document.getElementById(createViewObject.placement)){
-            referenceAnchor = this.views[viewState].template.childNodes[0];
+        referenceAnchor = this.views[viewState].template.childNodes[0];
 
+        if(dropViewPoint = d.getElementById(createViewObject.placement)){
             dropViewPoint.appendChild(this.views[viewState].template);
-
-            this.views[viewState].reference = referenceAnchor.parentNode;
-            this.views[viewState].template = viewObj;
+        } else {
+            // drop in the body
+            d.body.appendChild(this.views[viewState].template);
         }
+
+        this.views[viewState].view = referenceAnchor.parentNode;
+        this.views[viewState].template = viewObj;
+        if(this.models && this.models[viewState]){
+            this.views[viewState].model = this.models[viewState];
+        }
+        if(this.collection && this.collection[viewState]){
+            this.views[viewState].collection = this.collection[viewState];
+        }        
 
     	return this;
     }
@@ -154,20 +168,21 @@
             this.controllers[controllerState] = createControllerObj;
         }
 
+
+        // this can be combined...
         if(createControllerObj.events && this.views[controllerState]){
             for(var elementEventBinding in createControllerObj.events){
-                var referenceElementNodeList = this.views[controllerState].reference.querySelectorAll(elementEventBinding);
+                var referenceElementNodeList = this.views[controllerState].view.querySelectorAll(elementEventBinding);
                 for(var i=0;i<referenceElementNodeList.length;i++){
-
                     for(var onEvent in createControllerObj.events[elementEventBinding].on){
 
                         referenceElementNodeList[i]["on"+onEvent] = function(instanceControllerStateRef, instanceElementEventBinding, instanceOnEvent){
                             return function(ev){
 
-                                if(selfPersonifiedApp.models && selfPersonifiedApp.models[instanceControllerStateRef]){
-                                    return createControllerObj[ createControllerObj.events[instanceElementEventBinding].on[instanceOnEvent] ].call(selfPersonifiedApp.models[instanceControllerStateRef],ev);
-                                } else {
-                                    return createControllerObj[ createControllerObj.events[instanceElementEventBinding].on[instanceOnEvent] ].call(this,ev);
+                                try{
+                                    return createControllerObj[ createControllerObj.events[instanceElementEventBinding].on[instanceOnEvent] ].call(selfPersonifiedApp.views[instanceControllerStateRef],ev);
+                                } catch(er){
+                                    return console.log(er, "uhh you dont have a function by that name");
                                 }
 
                             };
@@ -176,12 +191,36 @@
                     }
                 }
             }
+        } else {
+            for(var elementEventBinding in createControllerObj.events){
+                var referenceElementNodeList = d.querySelectorAll(elementEventBinding);
+                for(var i=0;i<referenceElementNodeList.length;i++){
+
+                    for(var onEvent in createControllerObj.events[elementEventBinding].on){
+
+                        referenceElementNodeList[i]["on"+onEvent] = function(instanceControllerStateRef, instanceElementEventBinding, instanceOnEvent){
+                            return function(ev){
+
+                                try{
+                                    return createControllerObj[ createControllerObj.events[instanceElementEventBinding].on[instanceOnEvent] ].call(selfPersonifiedApp,ev);
+                                } catch(er){
+                                    return console.log(er, "uhh you dont have a function by that name");
+                                }
+
+                            };
+                        }.call(referenceElementNodeList[i], controllerState, elementEventBinding, onEvent);
+
+                    }
+
+                }
+            }
         }
 
     	return this;
     }
 
-    function createModel(createModelObj,modelState){
+    // model work
+    function createModel (createModelObj,modelState){
         if( !createModelObj ){
             return throwOne("I have to get both a object to base the model on");
         }
@@ -194,17 +233,20 @@
         } else {
             console.log("create this model");
             this.models[modelState] = createBaseModelObj(createModelObj, modelState);
+            if(this.views && this.views[modelState]){
+                this.views[modelState].model = this.models[modelState];
+            }
             howeverYouDoEvents(personifiedPubSubDOMModule, modelState+"Action", this.models[modelState].handler);
         }
 
     	return this;
     }
 
-    function createBaseModelObj(modelToCreateFrom, modelName){
-        var _eventCount = 0,
-            selfModelObj;
+    function createBaseModelObj(modelToCreateFrom, modelName, modelFromCollectionBool){
+        var selfModelObj,
+            _altered = false;
 
-        function baseModelObject(modelToCreateFrom){
+        function personifiedBaseModel(modelToCreateFrom){
             this.base = {};
             this.live = {};
             this.changed = {};
@@ -218,31 +260,37 @@
             return this;
         }
 
-        baseModelObject.prototype.handler = function(ev){
-            var handlersDOMInstance = this.getElementById(_eventCount+"-"+ev.timeStamp);
+        personifiedBaseModel.prototype.handler = function(ev){
+            var handlersDOMInstance = this.getElementById(selfModelObj.name+"-Model-"+_eventCount+"-"+ev.timeStamp);
 
-            switch(handlersDOMInstance.action){
-                case "set":
-                    selfModelObj.changed[handlersDOMInstance.setProp] = handlersDOMInstance.setData;
-                    break;
-                case "revertSingle":
-                    selfModelObj.changed[handlersDOMInstance.setProp] = selfModelObj.base[handlersDOMInstance.setProp];
-                    selfModelObj.live[handlersDOMInstance.setProp] = selfModelObj.base[handlersDOMInstance.setProp];
-                    break;
-                case "revert":
-                    selfModelObj.changed = selfModelObj.base;
-                    selfModelObj.live = selfModelObj.base;
-                    break;
+            if(handlersDOMInstance){
+                switch(handlersDOMInstance.action){
+                    case "set":
+                        selfModelObj.changed[handlersDOMInstance.setProp] = handlersDOMInstance.setData;
+                        _altered = true;
+                        break;
+                    case "revertSingle":
+                        selfModelObj.changed[handlersDOMInstance.setProp] = selfModelObj.base[handlersDOMInstance.setProp];
+                        selfModelObj.live[handlersDOMInstance.setProp] = selfModelObj.base[handlersDOMInstance.setProp];
+                        break;
+                    case "revert":
+                        selfModelObj.changed = selfModelObj.base;
+                        selfModelObj.live = selfModelObj.base;
+                        _altered = false;
+                        break;
+                }
+
+
+                handlersDOMInstance.parentNode.removeChild(handlersDOMInstance);
+
+                return selfModelObj.changed;
+
             }
-
-            handlersDOMInstance.parentNode.removeChild(handlersDOMInstance);
-
-            return selfModelObj.changed;
         };
 
-        baseModelObject.prototype.name = modelName;
+        personifiedBaseModel.prototype.name = modelName;
 
-        baseModelObject.prototype.get = function(modelProp){
+        personifiedBaseModel.prototype.get = function(modelProp){
             if(!modelProp){
                 return throwOne("Cant get nothing if you dont tell me what to get");
             }
@@ -254,7 +302,7 @@
             }
         };
 
-        baseModelObject.prototype.set = function(modelProp, dataToSet){
+        personifiedBaseModel.prototype.set = function(modelProp, dataToSet){
             if(!modelProp){
                 return throwOne("Cant set anything if you dont tell me what to set");
             }
@@ -271,7 +319,7 @@
                 var setElem = Objectified.render({
                     "tag":"span",
                     "attributes":{
-                        "id":_eventCount+"-"+setEvent.timeStamp
+                        "id":this.name+"-Model-"+_eventCount+"-"+setEvent.timeStamp
                     }
                 });
 
@@ -291,23 +339,25 @@
 
         };
 
-        baseModelObject.prototype.revert = function(modelPropToRevert){
+        personifiedBaseModel.prototype.revert = function(modelPropToRevert){
             /* 
                 if something is passed then revert just that...
                 otherwise revert all
             */
+
+            var setEvent = document.createEvent("MouseEvents"),
+                setElem;
+
             if(modelPropToRevert){
                 this.live[modelPropToRevert] = this.base[modelPropToRevert];
                 this.changed[modelPropToRevert] = this.base[modelPropToRevert];
 
-                var setEvent = document.createEvent("MouseEvents");
-
                 setEvent.initMouseEvent(this.name+"Action", true, true, window, (++_eventCount),0,0,0,0, false,false,false, false,0,null);
 
-                var setElem = Objectified.render({
+                setElem = Objectified.render({
                     "tag":"span",
                     "attributes":{
-                        "id":_eventCount+"-"+setEvent.timeStamp
+                        "id":this.name+"-Model-"+_eventCount+"-"+setEvent.timeStamp
                     }
                 });
 
@@ -324,14 +374,12 @@
                 this.live = this.base;
                 this.changed = this.base;
 
-                var setEvent = document.createEvent("MouseEvents");
-
                 setEvent.initMouseEvent(this.name+"Action", true, true, window, (++_eventCount),0,0,0,0, false,false,false, false,0,null);
 
-                var setElem = Objectified.render({
+                setElem = Objectified.render({
                     "tag":"span",
                     "attributes":{
-                        "id":_eventCount+"-"+setEvent.timeStamp
+                        "id":this.name+"-Model-"+_eventCount+"-"+setEvent.timeStamp
                     }
                 });
 
@@ -347,12 +395,145 @@
 
         };
 
-        selfModelObj = new baseModelObject(modelToCreateFrom);
+        if(modelFromCollectionBool){
+            personifiedBaseModel.prototype.id = modelName+"-"+(_randNumCount++);
+        }        
+
+        selfModelObj = new personifiedBaseModel(modelToCreateFrom);
 
         return selfModelObj;
     }
+    // end model work
 
 
+    // collection work
+    function createCollection(createCollectionObj, collectionState){
+
+        if( !createCollectionObj ){
+            return throwOne("I have to get both a object to base the collection on");
+        }
+        if( !collectionState ){
+            return throwOne("I have to get a collection state that this will belong to");
+        }
+
+        if(this.collection[collectionState]){
+            console.log("I already have this collection");
+        } else {
+            console.log("create this collection");
+            this.collection[collectionState] = createBaseCollectionObj(createCollectionObj, collectionState);
+            if(this.views && this.views[collectionState]){
+                this.views[collectionState].collection = this.collection[collectionState];
+            }
+            howeverYouDoEvents(personifiedPubSubDOMModule, collectionState+"Action", this.collection[collectionState].handler);
+        }
+
+    }
+
+    function createBaseCollectionObj(collectionToCreateFrom, collectionName){
+
+        var selfCollectionObj,
+            _altered = false;
+
+        function personifiedBaseCollection(collectionToCreateFrom){
+            var instance;
+            this.base = {};
+            this.live = {};
+            this.changed = {};
+
+            //for(var prop in collectionToCreateFrom){
+            for(var i=0; i<collectionToCreateFrom.length;i++){
+                instance = createBaseModelObj( collectionToCreateFrom[i], collectionName, true );
+
+                this.base[instance.id] = instance;
+                this.live[instance.id] = instance;
+                this.changed[instance.id] = instance;
+            }
+
+            return this;
+        }
+
+        personifiedBaseCollection.prototype.handler = function(ev){
+            var handlersDOMInstance = this.getElementById(selfCollectionObj.name+"-Collection-"+_eventCount+"-"+ev.timeStamp);
+            console.log(handlersDOMInstance, handlersDOMInstance.action)
+
+            if(handlersDOMInstance){
+
+                switch(handlersDOMInstance.action){
+                    case "add":
+                        selfModelObj.changed[handlersDOMInstance.setProp] = handlersDOMInstance.setData;
+                        _altered = true;
+                        break;
+                }
+
+                handlersDOMInstance.parentNode.removeChild(handlersDOMInstance);
+
+                return selfCollectionObj.changed;
+
+            }
+
+        };
+
+        personifiedBaseCollection.prototype.name = collectionName;
+
+        personifiedBaseCollection.prototype.get = function(collectionProp){
+        };
+
+        personifiedBaseCollection.prototype.set = function(collectionProp, dataToSet){
+        };
+
+        personifiedBaseCollection.prototype.add = function(collectionItemToBeAdded){
+            if(!collectionItemToBeAdded){
+                return throwOne("I need to given something to add to the collection");
+            }
+
+            if(collectionItemToBeAdded.length){
+                // and array of X
+                for(var i=0;i<collectionItemToBeAdded.length;i++){
+                    this.live[this.name+"-"+(_randNumCount++)] = createBaseModelObj(collectionItemToBeAdded[i], collectionName, true);
+                }
+            } else {
+                // single instance of X to add
+                this.live[this.name+"-"+(_randNumCount++)] = createBaseModelObj(collectionItemToBeAdded, collectionName, true);
+            }
+
+            var setEvent = document.createEvent("MouseEvents");
+
+            setEvent.initMouseEvent(this.name+"Action", true, true, window, (++_eventCount),0,0,0,0, false,false,false, false,0,null);
+
+            var setElem = Objectified.render({
+                "tag":"span",
+                "attributes":{
+                    "id":this.name+"-Collection-"+_eventCount+"-"+setEvent.timeStamp
+                }
+            });
+
+            // need a better way to do this
+            setElem.childNodes[0].setProp = this.name;
+            setElem.childNodes[0].setData = collectionItemToBeAdded;
+            setElem.childNodes[0].action = "add";
+
+            personifiedPubSubDOMModule.appendChild(setElem);
+
+            personifiedPubSubDOMModule.dispatchEvent(setEvent);
+
+            return this.changed;
+        };
+
+        personifiedBaseCollection.prototype.remove = function(modelProp, dataToSet){
+        };
+
+        personifiedBaseCollection.prototype.revert = function(modelPropToRevert){
+        };
+
+        selfCollectionObj = new personifiedBaseCollection(collectionToCreateFrom);
+
+        return selfCollectionObj;
+
+    }
+    // end collection work
+
+    // start endpoints
+    // end endpoints
 
 
     function personified (baseObjToExtend) {
@@ -399,9 +580,11 @@
     };
 
     // called to create the parts of the MVC
-    personified.prototype.createView = createView;
     personified.prototype.createModel = createModel;
+    personified.prototype.createView = createView;
     personified.prototype.createController = createController;
+
+    personified.prototype.createCollection = createCollection;
 
     // typically called to start an app
     personified.prototype.createMVC = createMVC;
@@ -426,9 +609,11 @@
             PersonifiedApp.createModel(createMVCObj.model,"init");
         }
 
-        howeverYouDoEvents(personifiedPubSubDOMModule, "init", noop);
+        if(createMVCObj.collection){
+            PersonifiedApp.createCollection(createMVCObj.collection,"init");
+        }
 
-        console.log(PersonifiedApp, personifiedPubSubDOMModule, personifiedPubSubDOMModule.actions);
+        howeverYouDoEvents(personifiedPubSubDOMModule, "init", noop);
 
     	return PersonifiedApp;
     }

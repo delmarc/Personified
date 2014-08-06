@@ -2,92 +2,61 @@
 <html>
     <head>
         <meta charset="utf-8" />
-        <title>Personified</title>
+        <title>-- Personified --</title>
         <script src="//localhost:3001/js/Objectified.js"></script>
         <script src="js/Personified.js"></script>
     </head>
     <body>
 
-        <h1>Personified...</h1>
-        <p>an mvc-ish framework that is only OO you will never write html again...</p>
-        <div id="app-placement"></div>
-
         <script>
-        var sampleApp = Personified.init({
-            something:1,
-            view:{
-                placement:"app-placement",
-                template:true,
-                render:{
-                    tag:"div",
-                    children:[{
-                        tag:"p",
-                        attributes:{
-                            className:"yea",
-                            innerHTML:"OK",
-                            style:{
-                                color:"#ff0000"
-                            }
-                        }
-                    },{
-                        tag:"p",
-                        attributes:{
-                            className:"reset",
-                            innerHTML:"alert me",
-                            style:{
-                                color:"#ff0000"
-                            }
-                        }
-                    },{
-                        tag:"p",
-                        attributes:{
-                            className:"resetAll",
-                            innerHTML:"reset Everything",
-                            style:{
-                                color:"#ff00ff"
-                            }
-                        }
+        document.body.appendChild( Objectified.render({
+            "tag":"div",
+            "children":[{
+                "tag":"h1",
+                "attributes":{
+                    "innerHTML":"Personified..."
+                }
+            },{
+                "tag":"p",
+                "attributes":{
+                    "innerHTML":"an mvc-ish framework that is only OO... and you will never write html again..."
+                }
+            },{
+                "tag":"div",
+                "attributes":{
+                    "id":"links"
+                },
+                "children" :[{
+                    "tag":"ul",
+                    "attributes":{
+                        "id":"main-examples-list"
+                    },
+                    "children":[{
+                        "tag":"li"
                     }]
-                }
-            },/*
-            model:{
-                prop:"some shit"
-            },*/
-            controller:{
-                events:{
-                    "p.yea":{
-                        on:{
-                            click : "alertMe"
-                        }
-                    },
-                    "p.reset":{
-                        on:{
-                            click : "revertMe"
-                        }
-                    },
-                    "p.resetAll":{
-                        on:{
-                            click : "revertAll"
-                        }
+                },{
+                    "tag":"a",
+                    "attributes":{
+                        "href":"examples/L1-1-simpleView.html",
+                        "target":"examplesFrame",
+                        "innerHTML":"a simple view"
                     }
-                },
-                revertAll:function(ev){
-                    console.log("Revert all",this.revert(), this);
-                    alert("reverting all and alerting");
-                },
-                revertMe:function(ev){
-                    console.log("Revert single",this.revert("prop"), this);
-                    alert("reverting single one and alerting");
-                },
-                alertMe:function(ev){
-                    /*console.log("YO this is the model",this,ev);*/
-                    console.log("YO",this.set("prop","ok something else"), this);
+                },{
+                    "tag":"a",
+                    "attributes":{
+                        "href":"examples/L1-2-simpleController.html",
+                        "target":"examplesFrame",
+                        "innerHTML":"a simple controller"
+                    }
+                }]
+            },{
+                "tag":"iframe",
+                "attributes":{
+                    "src":"examples/L1-1-simpleView.html",
+                    "name":"examplesFrame"
                 }
-            }
-        }).createModel({
-            prop:"some shit"
-        },"init");
-
+            }]
+        }) );
         </script>
 
     </body>

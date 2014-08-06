@@ -7,14 +7,15 @@ Sure that is ok but I know I am an engineer, not a boring developer... I don't t
 
 
 ###### Personified was started 6/27/14
-###### Current version - 0.0.6 - 7/15/14
+###### Current version - 0.1.0 - 8/6/14
 
 
 TODOS
 -----
 
-1. Everything
-2. Start/Finish the model implementation
-3. Have the correct context in the controllers functions and such...
+1. ~~Everything~~ I am a bit further than nothing but still have alot
+2. ~~Start/Finish the model implementation~~ have to finish the collections stuff
+3. Keep going with the examples 
+4. Get the extending plugin/module stuff working
 
 Delmarc
