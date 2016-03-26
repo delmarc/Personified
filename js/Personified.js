@@ -97,16 +97,49 @@
         this.views = {};
         this.controllers = {};
 
-        this.collection = {};
+        this.collections = {};
 
         return this;
     }
 
-    function createMVC(createMVCObj, mvcState){
+    function create(createObj, mvcState){
         // this is what will be the new init
-        console.log(this);
 
-        return this;
+        if(!mvcState){
+            return new throwOne("When creating, I need to know what state that it is happening in...");
+        }
+
+        if(this instanceof personified){
+            console.log( this instanceof personified , "I am");
+        } else {
+
+            PersonifiedApp = new personified(createObj);
+
+            createBaseObj.call(PersonifiedApp);
+
+            if(createObj.model){
+                PersonifiedApp.createModel(createObj.model, mvcState);
+            }
+
+            if(createObj.collection){
+                PersonifiedApp.createCollection(createObj.collection, mvcState);
+            }
+
+            if(createObj.view && createObj.view.render){
+                PersonifiedApp.createView(createObj.view, mvcState);
+            }
+
+            if(createObj.controller){
+                PersonifiedApp.createController(createObj.controller, mvcState);
+            }
+
+            console.log(createObj);
+
+        }
+
+        howeverYouDoEvents(personifiedPubSubDOMModule, mvcState, noop);
+
+        return PersonifiedApp;
     }
 
     function createView (createViewObject,viewState){
@@ -117,9 +150,26 @@
             return throwOne("I have to get a view state that this will belong to");
         }
 
-        var viewObj = Objectified.render(createViewObject.render),
+        var viewObj,
             dropViewPoint,
             referenceAnchor;
+
+        console.log(createViewObject);
+
+        if(createViewObject.useCollection || createViewObject.useModel){
+
+            if(createViewObject.useCollection){
+                viewObj = Objectified.render(createViewObject.render, 
+                    this.collections[viewState]
+                );
+            } else {
+                console.log(this);
+                viewObj = Objectified.render(createViewObject.render, this.models[viewState].base);
+            }
+
+        } else {
+            viewObj = Objectified.render(createViewObject.render);
+        }
 
         if(this.views[viewState] && this.views[viewState].template){
             console.log("I already have this view");
@@ -133,6 +183,7 @@
         referenceAnchor = this.views[viewState].template.childNodes[0];
 
         if(dropViewPoint = d.getElementById(createViewObject.placement)){
+            //dropViewPoint.appendChild(this.views[viewState].template);
             dropViewPoint.appendChild(this.views[viewState].template);
         } else {
             // drop in the body
@@ -140,12 +191,14 @@
         }
 
         this.views[viewState].view = referenceAnchor.parentNode;
+        this.views[viewState].viewSelfReference = referenceAnchor;
+
         this.views[viewState].template = viewObj;
         if(this.models && this.models[viewState]){
             this.views[viewState].model = this.models[viewState];
         }
-        if(this.collection && this.collection[viewState]){
-            this.views[viewState].collection = this.collection[viewState];
+        if(this.collections && this.collections[viewState]){
+            this.views[viewState].collection = this.collections[viewState];
         }        
 
     	return this;
@@ -173,10 +226,12 @@
         if(createControllerObj.events && this.views[controllerState]){
             for(var elementEventBinding in createControllerObj.events){
                 var referenceElementNodeList = this.views[controllerState].view.querySelectorAll(elementEventBinding);
+
                 for(var i=0;i<referenceElementNodeList.length;i++){
                     for(var onEvent in createControllerObj.events[elementEventBinding].on){
 
                         referenceElementNodeList[i]["on"+onEvent] = function(instanceControllerStateRef, instanceElementEventBinding, instanceOnEvent){
+
                             return function(ev){
 
                                 try{
@@ -190,6 +245,7 @@
 
                     }
                 }
+
             }
         } else {
             for(var elementEventBinding in createControllerObj.events){
@@ -214,6 +270,14 @@
 
                 }
             }
+        }
+
+        if(createControllerObj.bindings){
+
+        }
+
+        if(createControllerObj.render){
+
         }
 
     	return this;
@@ -261,7 +325,9 @@
         }
 
         personifiedBaseModel.prototype.handler = function(ev){
-            var handlersDOMInstance = this.getElementById(selfModelObj.name+"-Model-"+_eventCount+"-"+ev.timeStamp);
+            var handlersDOMInstance = this.getElementById(selfModelObj.name+"-Model-"+_eventCount+"-"+ev.timeStamp),
+                baseModelsController = PersonifiedApp.controllers && PersonifiedApp.controllers[modelName],
+                baseModelsView = PersonifiedApp.views && PersonifiedApp.views[modelName];
 
             if(handlersDOMInstance){
                 switch(handlersDOMInstance.action){
@@ -280,6 +346,60 @@
                         break;
                 }
 
+                if(baseModelsView){
+                    if(baseModelsController.update){
+                        var nodesToUpdateCount;
+                        console.log(
+                            "update", 
+                            baseModelsView.viewSelfReference, 
+                            baseModelsView.viewSelfReference.querySelectorAll("[data-change-on-update]").length
+                        );
+
+                        if(nodesToUpdateCount = baseModelsView.viewSelfReference.querySelectorAll("[data-change-on-update]").length){
+                            var nodesToUpdate = baseModelsView.viewSelfReference.querySelectorAll("[data-change-on-update]");
+                            for(var i=0;i<nodesToUpdateCount;i++){
+                                console.log(nodesToUpdate[i]);
+                                console.log(nodesToUpdate[i].bitching);
+                                console.log(nodesToUpdate[i].dataBindedAttributes);
+                                console.log(nodesToUpdate[i].bindedAttributesMapping);
+
+                                console.log(baseModelsView);
+                                nodesToUpdate[i][ nodesToUpdate[i].getAttribute("data-change-on-update") ] = "SET HERE";
+                            }
+                        } else {
+                            console.log("nothing to update");
+                        }
+
+
+                    } else if (baseModelsController.render){
+                        console.log("render", baseModelsView.viewSelfReference);
+                    }
+
+                    /*
+                    if(baseModelsController.render){
+                        baseModelsView.viewSelfReference.parentNode.removeChild(baseModelsView.viewSelfReference);
+
+                        var newViewInstance = baseModelsView.template.cloneNode(true);
+                        var referenceAnchor = newViewInstance.childNodes[0];
+
+                        baseModelsView.view.appendChild(newViewInstance);
+                        baseModelsView.viewSelfReference = referenceAnchor;
+
+                        createController.call(PersonifiedApp, baseModelsController, modelName); 
+
+                        baseModelsController.render();
+                    }
+
+                    if(baseModelsController.update){
+                        console.log(baseModelsView)
+                        if(baseModelsView.template.querySelectorAll("[data-change-on-update]").length){
+
+                        }
+                        baseModelsController.update();
+                    }
+                    */
+
+                }
 
                 handlersDOMInstance.parentNode.removeChild(handlersDOMInstance);
 
@@ -291,18 +411,25 @@
         personifiedBaseModel.prototype.name = modelName;
 
         personifiedBaseModel.prototype.get = function(modelProp){
+
             if(!modelProp){
                 return throwOne("Cant get nothing if you dont tell me what to get");
             }
 
             if(this.base.hasOwnProperty(modelProp)){
-                return this.base[modelProp];
+                if(_altered){
+                    return this.live[modelProp];
+                } else {
+                    return this.base[modelProp];
+                }
             } else {
                 return null;
             }
+
         };
 
         personifiedBaseModel.prototype.set = function(modelProp, dataToSet){
+
             if(!modelProp){
                 return throwOne("Cant set anything if you dont tell me what to set");
             }
@@ -416,16 +543,18 @@
             return throwOne("I have to get a collection state that this will belong to");
         }
 
-        if(this.collection[collectionState]){
+        if(this.collections[collectionState]){
             console.log("I already have this collection");
         } else {
             console.log("create this collection");
-            this.collection[collectionState] = createBaseCollectionObj(createCollectionObj, collectionState);
+            this.collections[collectionState] = createBaseCollectionObj(createCollectionObj, collectionState);
             if(this.views && this.views[collectionState]){
-                this.views[collectionState].collection = this.collection[collectionState];
+                this.views[collectionState].collection = this.collections[collectionState];
             }
-            howeverYouDoEvents(personifiedPubSubDOMModule, collectionState+"Action", this.collection[collectionState].handler);
+            howeverYouDoEvents(personifiedPubSubDOMModule, collectionState+"Action", this.collections[collectionState].handler);
         }
+
+        return this;
 
     }
 
@@ -460,7 +589,11 @@
 
                 switch(handlersDOMInstance.action){
                     case "add":
-                        selfModelObj.changed[handlersDOMInstance.setProp] = handlersDOMInstance.setData;
+                        selfCollectionObj.changed[handlersDOMInstance.setProp] = handlersDOMInstance.setData;
+                        _altered = true;
+                        break;
+                    case "remove":
+                        selfCollectionObj.changed[handlersDOMInstance.setProp] = handlersDOMInstance.setData;
                         _altered = true;
                         break;
                 }
@@ -519,7 +652,17 @@
             return this.changed;
         };
 
-        personifiedBaseCollection.prototype.remove = function(modelProp, dataToSet){
+        personifiedBaseCollection.prototype.remove = function(collectionItemToBeRemoved){
+            if(!collectionItemToBeRemoved){
+                return throwOne("I need to given something to remove from the collection");
+            }
+
+            if(collectionItemToBeRemoved instanceof personifiedBaseModel){
+                console.log("hello this is a base model...");
+            } else {
+                console.log("not a base model...");
+
+            }
         };
 
         personifiedBaseCollection.prototype.revert = function(modelPropToRevert){
@@ -558,27 +701,6 @@
     	return this;
     }
 
-    /* 
-        this will basically give the developer the chance to extend as to what personified does...
-        well eventually it will...
-    */
-    personified.prototype.extend = function(extendingObj){
-        if(!extendingObj){
-            return throwOne("I think it would be good to at least give me an object to start with - err-0");
-        }
-
-        if(typeof extendingObj !== "object" || typeof extendingObj.length === "number" ){
-            return throwOne("You either gave me something that is not an object like i am expecting, or probably an array");
-        }
-
-
-        for(var objectItem in extendingObj){
-            this[objectItem] = extendingObj[objectItem];
-        }
-
-        return this;
-    };
-
     // called to create the parts of the MVC
     personified.prototype.createModel = createModel;
     personified.prototype.createView = createView;
@@ -586,42 +708,71 @@
 
     personified.prototype.createCollection = createCollection;
 
-    // typically called to start an app
-    personified.prototype.createMVC = createMVC;
+    personified.prototype.hazModel = noop;
+    personified.prototype.hazView = noop;
+    personified.prototype.hazController = noop;
+    personified.prototype.hazCollection = noop;
 
+    personified.prototype.create = create;
 
     // this is where it all begins
-    function init (createMVCObj){
+    function init (createObj){
 
-    	PersonifiedApp = new personified(createMVCObj);
+        return create(createObj, "init");
 
-        createBaseObj.call(PersonifiedApp);
-
-        if(createMVCObj.view && createMVCObj.view.render){
-            PersonifiedApp.createView(createMVCObj.view,"init");
-        }
-
-        if(createMVCObj.controller){
-            PersonifiedApp.createController(createMVCObj.controller,"init");
-        }
-
-        if(createMVCObj.model){
-            PersonifiedApp.createModel(createMVCObj.model,"init");
-        }
-
-        if(createMVCObj.collection){
-            PersonifiedApp.createCollection(createMVCObj.collection,"init");
-        }
-
-        howeverYouDoEvents(personifiedPubSubDOMModule, "init", noop);
-
-    	return PersonifiedApp;
     }
 
+    function extend(extendingObjOrURL){
+        if(!extendingObjOrURL){
+            return throwOne("I think it would be good to at least give me an object to start with - err-0");
+        }
+
+        if(typeof extendingObjOrURL === "string"){
+            var extendingScript = Objectified.render({
+                "tag":"script",
+                "attributes":{
+                    "src":extendingObjOrURL
+                }
+            });
+
+            extendingScript.onload = function(){
+
+            }
+
+            extendingScript.onerror = function(){
+
+            }
+
+            d.body.appendChild(extendingScript);
+
+
+        } else if(typeof extendingObjOrURL !== "object" || typeof extendingObjOrURL.length === "number" ){
+            return throwOne("You either gave me something that is not an object like i am expecting, or probably an array");
+        }
+
+        /*
+        for(var objectItem in extendingObjOrURL){
+            this[objectItem] = extendingObjOrURL[objectItem];
+        }
+        */
+
+        return this;        
+    }
+
+    /* 
+        this will basically give the developer the chance to extend as to what personified does...
+        well eventually it will...
+    */
+    personified.prototype.extend = extend;
+
     personifiedSelf.init = init;
+    personifiedSelf.create = create;
+    personifiedSelf.createModel = createModel;
+    personifiedSelf.createView = createView;
+    personifiedSelf.createController = createCollection;
 
 	personifiedSelf.name = "Personified.js";
-	personifiedSelf.version = "0.0.0";
+	personifiedSelf.version = "0.1.0";
 
 	personifiedSelf.atTheTime = {
 		song : "Pimp Mode",

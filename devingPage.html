@@ -5,6 +5,7 @@
         <title>-- Personified --</title>
         <script src="//localhost:3001/js/Objectified.js"></script>
         <script src="js/Personified.js"></script>
+
     </head>
     <body>
 
@@ -30,7 +31,11 @@
         }) );
 
         var sampleApp = Personified.init({
-            something:1,
+        //var sampleApp = Personified.create({
+            // have to do something with this
+            BASESHIT:{
+                "aNumMofos":1
+            },
             view:{
                 placement:"app-placement",
                 template:true,
@@ -90,6 +95,15 @@
                                 color:"#00ffff"
                             }
                         }
+                    },{
+                        tag:"p",
+                        attributes:{
+                            id:"removeSingleFromCollection",
+                            innerHTML:"Remove one from the collection",
+                            style:{
+                                color:"#000000"
+                            }
+                        }
                     }]
                 }
             },
@@ -123,6 +137,11 @@
                     "p#addSingleToCollection":{
                         on:{
                             click : "addSingleToCollection"
+                        }
+                    },
+                    "p#removeSingleFromCollection":{
+                        on:{
+                            click : "removeSingleFromCollection"
                         }
                     }
                 },
@@ -171,12 +190,21 @@
                     } else {
                         alert("no collection to add to");
                     }
+                },
+                removeSingleFromCollection:function(ev){
+                    if(this.collection){
+                        this.collection.remove();
+                        //this.collection.remove(this.collection[0]);
+                        alert("random removed from the collection");
+                    } else {
+                        alert("no collection to remove from");
+                    }
                 }
 
             }
-        }).createModel({
+        },"init").createModel({
             prop:"some shit"
-        },"init");
+        },"init").extend("person/person-router.js");
         </script>
 
     </body>

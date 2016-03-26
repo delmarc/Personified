@@ -10,14 +10,30 @@
 
         <script>
         var sampleApp = Personified.init({
+            model:{
+                name:"daddy",
+                relation:"parent"
+            },
             view:{
+                template:true,
+                useModel:true,
                 render:{
                     tag:"div",
                     children:[{
                         tag:"p",
                         attributes:{
-                            innerHTML:"OH hello world..."
-                        }
+                            id:"cryingP",
+                        },
+                        children:[
+                            "hello ",
+                            ["name"],
+                            {
+                                tag:"em",
+                                dataBindedAttributes:{
+                                    innerHTML:["name"]
+                                }
+                            }
+                        ]
                     }]
                 }
             }

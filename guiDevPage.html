@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8" />
+        <title>-- Personified --</title>
+        <script src="//localhost:3001/js/Objectified.js"></script>
+        <script src="js/Personified.js"></script>
+
+    </head>
+    <body>
+
+        <script>
+        document.body.appendChild( Objectified.render({
+            "tag":"div",
+            "children":[{
+                    "tag":"h1",
+                    "attributes":{
+                        "innerHTML":"Personified..."
+                    }
+                },{
+                    "tag":"p",
+                    "attributes":{
+                        "innerHTML":"an mvc-ish framework that is only OO you will never write html again..."
+                    }
+                },{
+                    "tag":"div",
+                    "attributes":{
+                        "id":"app-placement"
+                    }
+            }]
+        }) );
+
+        var sampleApp = Personified.init({
+            //var sampleApp = Personified.create({
+            // have to do something with this
+            BASESHIT:{
+                "aNumMofos":1
+            },
+            view:{
+                placement:"app-placement",
+                template:true,
+                render:{
+                    tag:"div",
+                    attributes:{
+                        id:"collectionContainer"
+                    },
+                    children:[{
+                        tag:"p",
+                        attributes:{
+                            id:"startP",
+                            innerHTML:"OH YEA LETS GET THIS STARTED"
+                        }
+                    }]
+                }
+            },
+            controller:{
+                events:{
+                    "p#startP":{
+                        on:{
+                            click : "getThisModelStarted"
+                        }
+                    }
+                },
+                getThisModelStarted:function(ev){
+                    ev.target.parentNode.removeChild(ev.target);
+
+                    sampleApp.createModel({
+                        name:"daddy",
+                        relation:"parent"
+                    },"modelInit").createView({
+                        placement:"collectionContainer",
+                        template:true,
+                        render:{
+                            tag:"div",
+                            children:[{
+                                tag:"p",
+                                attributes:{
+                                    innerHTML:"this is just a P"
+                                }
+                            },{
+                                tag:"input",
+                                attributes:{
+                                    name:"name",
+                                    id:"name"
+                                },
+                                dataBindedAttributes:{
+                                    value:["name"]
+                                }
+                            },{
+                                tag:"em",
+                                dataBindedAttributes:{
+                                    innerHTML:["name"]
+                                },
+                                attributes:{
+                                    dataset:{
+                                        changeOnUpdate:"innerHTML"
+                                    }                                    
+                                }
+                            }]
+                        },
+                        useModel:true
+                    },"modelInit").createController({
+                        events:{
+                            "input":{
+                                on:{
+                                    keyup : "keyupChanges"
+                                }
+                            }
+                        },
+                        update: function(){
+                            console.log("update called", this);
+                        },
+                        render: function(){
+                            console.log("render called", this);
+                        },
+                        keyupChanges:function(ev){
+                            this.model.set("name", ev.target.value);
+                            console.log(this.model.get("name"));
+                        }
+                    },"modelInit");
+
+                }
+            }
+        });
+        </script>
+
+    </body>
+</html>
