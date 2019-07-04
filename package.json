@@ -1,53 +1,53 @@
 {
-	"name": "Personified",
-	"version": "0.0.0",
-	"author": "Delmarc Eric Rosario <delmarc@uneek1.com>",
-	"description": "A Real Pure JavaScript Template 'Engine'",
-	"contributors": [ 
-		{
-		"name": "Delmarc Eric Rosario",
-		"email": "delmarc@uneek1.com"
-		} 
-	],
-	"bin": {
-	},
-	"scripts": {
-	},
-	"main": "",
-	"repository": {
-		"type": "git",
-		"url": "https://github.com/delmarc/Personified.git"
-	},
-	"bugs": {
-		"url": "https://github.com/delmarc/Personified/issues"
-	},
-	"keywords": [
-		"Personified"
-	],
-	"dependencies" : {
-		"gulp":"",
-		"gulp-browserify":"",
-		"gulp-concat":"",
-		"gulp-jshint":"",
-		"gulp-livereload":"",
-		"gulp-mocha":"",
-		"gulp-notify":"",
-		"gulp-open":"",
-		"gulp-rename":"",
-		"gulp-uglify":"",
-
-		"browserify":"",
-		"connect":"",
-		"mocha":"",
-		"vinyl-source-stream":""
-	},
-	"analyze": false,
-	"devDependencies": {
-	},
-	"bundledDependencies": [
-	],  
-	"license": "MIT",
-	"engines": {
-		"node": ">=0.10.24"
-	}
+  "name": "Personified",
+  "version": "0.0.0",
+  "author": "Delmarc Eric Rosario <delmarc@uneek1.com>",
+  "description": "A Real Pure JavaScript Template 'Engine'",
+  "contributors": [
+    {
+      "name": "Delmarc Eric Rosario",
+      "email": "delmarc@uneek1.com"
+    }
+  ],
+  "bin": {},
+  "scripts": {
+    "snyk-protect": "snyk protect",
+    "prepublish": "npm run snyk-protect"
+  },
+  "main": "",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/delmarc/Personified.git"
+  },
+  "bugs": {
+    "url": "https://github.com/delmarc/Personified/issues"
+  },
+  "keywords": [
+    "Personified"
+  ],
+  "dependencies": {
+    "gulp": "",
+    "gulp-browserify": "",
+    "gulp-concat": "",
+    "gulp-jshint": "",
+    "gulp-livereload": "",
+    "gulp-mocha": "",
+    "gulp-notify": "",
+    "gulp-open": "",
+    "gulp-rename": "",
+    "gulp-uglify": "",
+    "browserify": "",
+    "connect": "",
+    "mocha": "",
+    "vinyl-source-stream": "",
+    "snyk": "^1.189.0"
+  },
+  "analyze": false,
+  "devDependencies": {},
+  "bundledDependencies": [],
+  "license": "MIT",
+  "engines": {
+    "node": ">=0.10.24"
+  },
+  "snyk": true
 }
